@@ -3,7 +3,10 @@
 pub mod cli;
 pub mod logger;
 
-use logger::Logger;
+use indicatif::ProgressBar;
+use indicatif::ProgressStyle;
+
+use crate::logger::Logger;
 
 /// Result type, equivalent to [`std::result::Result<T, Error>`].
 ///
@@ -17,9 +20,6 @@ pub enum Error {
     #[error("This is just a placeholder")]
     Infallible,
 }
-
-use indicatif::ProgressBar;
-use indicatif::ProgressStyle;
 
 /// Run the program with the given `args`.
 pub fn run(args: cli::Args) -> crate::Result<()> {
@@ -47,6 +47,5 @@ pub fn run(args: cli::Args) -> crate::Result<()> {
     }
     pb.finish();
 
-    std::thread::sleep(std::time::Duration::from_secs(5));
-    todo!()
+    Err(Error::Infallible)
 }

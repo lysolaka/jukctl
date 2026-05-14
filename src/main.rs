@@ -1,6 +1,7 @@
 use std::error::Error;
 
 use anstyle::AnsiColor;
+
 use clap::Parser;
 
 use jukctl::cli::Args;
