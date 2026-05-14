@@ -1,0 +1,9 @@
+[package]
+name = "jukctl"
+description = "CLI g-code sender for JUK2"
+version = "0.1.0-dev.1"
+authors = ["lysolaka"]
+license = "GPL-3"
+edition = "2024"
+
+[dependencies]
