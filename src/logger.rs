@@ -1,4 +1,4 @@
-//! Logger implementation
+//! Logger implementation.
 
 use anstyle::AnsiColor;
 use anstyle::Style;

@@ -3,10 +3,11 @@
 pub mod cli;
 pub mod logger;
 
-use indicatif::ProgressBar;
-use indicatif::ProgressStyle;
+mod gcode;
+mod svg;
+mod transport;
 
-use crate::logger::Logger;
+use cli::Args;
 
 /// Result type, equivalent to [`std::result::Result<T, Error>`].
 ///
@@ -22,30 +23,8 @@ pub enum Error {
 }
 
 /// Run the program with the given `args`.
-pub fn run(args: cli::Args) -> crate::Result<()> {
-    log::trace!("Trace test");
-    log::debug!("Debug test");
-    log::info!("Got args: {:?}", args);
-    log::warn!("Warning test");
-    log::error!("Error test");
-
-    let pb = ProgressBar::new(4000);
-    pb.set_style(
-        ProgressStyle::with_template("[{elapsed_precise}] [{bar:55}] ({pos}/{len})")
-            .expect("the progress template should always work")
-            .progress_chars("=> "),
-    );
-
-    let pb = Logger::get().install(pb);
-
-    for i in 0..4000 {
-        std::thread::sleep(std::time::Duration::from_millis(10));
-        if i % 1000 == 0 {
-            log::info!("div by 1k");
-        }
-        pb.inc(1);
-    }
-    pb.finish();
+pub fn run(args: Args) -> crate::Result<()> {
+    log::debug!("Running with: {:?}", args);
 
     Err(Error::Infallible)
 }

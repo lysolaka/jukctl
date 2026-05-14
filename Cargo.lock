@@ -326,12 +326,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "juk-cmd"
+version = "0.1.0-beta.3"
+source = "git+https://github.com/lysolaka/juk2.git?branch=main#c30259baeaa8ec56495b7c40b6eb4430d8ae20bc"
+dependencies = [
+ "libm",
+ "serde",
+ "thiserror",
+]
+
+[[package]]
 name = "jukctl"
 version = "0.1.0-dev.1"
 dependencies = [
  "anstyle",
  "clap",
  "indicatif",
+ "juk-cmd",
  "log",
  "once_cell",
  "peg",

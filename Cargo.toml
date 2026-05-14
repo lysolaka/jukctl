@@ -19,3 +19,5 @@ roxmltree = "0.21"
 serialport = "4.9"
 svg2gcode = "0.3"
 thiserror = "2.0"
+
+juk-cmd = { git = "https://github.com/lysolaka/juk2.git", branch = "main", features = ["export"] }
