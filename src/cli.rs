@@ -1,10 +1,13 @@
 //! Command line arguments parsing
+
 use std::path::PathBuf;
 
 use anstyle::AnsiColor;
 use anstyle::Style;
+
 use clap::ArgAction;
 use clap::builder::styling::Styles;
+
 use log::LevelFilter;
 
 const HEADER: Style = AnsiColor::Green.on_default().bold();

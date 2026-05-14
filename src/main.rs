@@ -4,10 +4,11 @@ use anstyle::AnsiColor;
 use clap::Parser;
 
 use jukctl::cli::Args;
+use jukctl::logger::Logger;
 
 fn main() {
     let args = Args::parse();
-    // TODO: init the logger
+    Logger::init(args.verbosity.filter());
     if let Err(e) = jukctl::run(args) {
         eprintln!(
             "\n{0}error{0:#}: {1}",
