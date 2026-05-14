@@ -1,9 +1,21 @@
 [package]
 name = "jukctl"
-description = "CLI g-code sender for JUK2"
+description = "CLI G-code sender for JUK2"
 version = "0.1.0-dev.1"
 authors = ["lysolaka"]
 license = "GPL-3"
 edition = "2024"
 
 [dependencies]
+clap = { version = "4.6", features = ["derive", "wrap_help"] }
+postcard = { version = "1.1", default-features = false, features = ["use-std"] }
+
+anstyle = "1.0"
+indicatif = "0.8"
+log = "0.4"
+once_cell = "1.21"
+peg = "0.8"
+roxmltree = "0.21"
+serialport = "4.9"
+svg2gcode = "0.3"
+thiserror = "2.0"
