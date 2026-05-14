@@ -20,7 +20,7 @@ fn main() {
         let mut source = e.source();
         if source.is_some() {
             eprintln!("\nCaused by:");
-            let mut i = 0;
+            let mut i = 1;
 
             while let Some(err) = source {
                 eprintln!("{}: {}", i, err);
