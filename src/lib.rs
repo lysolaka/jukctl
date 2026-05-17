@@ -8,8 +8,11 @@ mod svg;
 mod transport;
 
 use juk_cmd::cmd::Command;
+use juk_cmd::cmd::Response;
+use juk_cmd::config::Frame;
 
 use cli::Args;
+use gcode::to_sequence;
 use svg::Svg;
 use transport::Interface;
 
@@ -22,10 +25,19 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// Common error type for all the kinds of errors in this program
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+    #[error("The plotter is not in absolute coordinates mode")]
+    FrameNotAbs,
+    #[error("Unexpected `svg2gcode` output")]
+    UnexpectedGcode,
+    #[error("Unexpected response: `{0:?}`")]
+    UnexpectedResponse(Response),
+
     #[error("Formatting error")]
     FmtError(#[from] std::fmt::Error),
     #[error("I/O error")]
     IoError(#[from] std::io::Error),
+    #[error("G-code parsing error")]
+    ParseError(#[from] juk_cmd::ParseError),
     #[error("Data serialization / deserialization error")]
     SerdeError(#[from] postcard::Error),
     #[error("Serial communication error")]
@@ -56,34 +68,40 @@ pub fn run(args: Args) -> crate::Result<()> {
     let svg = bail!(Svg::open(&args.file), "Can't open the SVG file");
     let gcode = bail!(svg.emit_gcode(), "Failed to parse or emit the G-code");
 
-    println!("{}", gcode);
-
     log::info!("Opening the serial port, make sure the plotter is in binary mode");
     let mut interface = bail!(
         Interface::open(&args.port),
         "Failed to connect to the plotter"
     );
 
-    let commands = [
-        Command::ConfigGet {
+    log::info!("Getting the system configuration");
+    let syscfg = match bail!(
+        interface.transaction(&Command::ConfigGet {
             key: "".to_string(),
-        },
-        Command::ConfigSet {
-            kv: vec![("k".to_string(), "v".to_string())],
-        },
-        Command::Cancel,
-        Command::Home {
-            x: true,
-            y: true,
-            z: false,
-        },
-    ];
+        }),
+        "Failed to obtain the system configuration"
+    ) {
+        Response::Config(c) => c,
+        r => return Err(Error::UnexpectedResponse(r)),
+    };
 
-    for cmd in commands {
-        log::info!("Sent: {:?}", cmd);
-        let resp = interface.transaction(&cmd)?;
-        log::info!("Got : {:?}", resp);
+    log::info!("");
+    log::info!("System configuration:");
+    log::info!("`accel` = {}", syscfg.accel);
+    log::info!("`vel` = {}", syscfg.vel);
+    match syscfg.frame {
+        Frame::Absolute => log::info!("`frame` = abs"),
+        Frame::Relative => log::info!("`frame` = rel"),
     }
+    log::info!("`mmpsX` = {}", syscfg.mmps.0);
+    log::info!("`mmpsY` = {}", syscfg.mmps.1);
+    log::info!("`mmpsZ` = {}", syscfg.mmps.2);
+    log::info!("");
+
+    log::info!("Converting G-code to movement sequence");
+    let seq = bail!(to_sequence(&gcode, &syscfg), "Failed to parse G-code");
+
+    log::info!("Sequence length: {}", seq.len());
 
     Err(Error::Infallible)
 }
