@@ -327,8 +327,8 @@ dependencies = [
 
 [[package]]
 name = "juk-cmd"
-version = "0.1.0-beta.3"
-source = "git+https://github.com/lysolaka/juk2.git?branch=main#f13ada549cd7a9ae144da2e7929fd724bdff6fc2"
+version = "0.1.0-beta.4"
+source = "git+https://github.com/lysolaka/juk2.git?branch=main#f3f724e5bc1415716e770ced5008a5884fd51f5a"
 dependencies = [
  "libm",
  "serde",
