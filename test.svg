@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="273.08902mm"
+   height="186.08588mm"
+   viewBox="0 0 273.08902 186.08588"
+   version="1.1"
+   id="svg1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <g
+     id="layer1"
+     transform="translate(-12.268442,-11.016597)">
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.499999;stroke-linejoin:round"
+       d="M 40.684931,167.12118 40.059009,49.760801 74.484719,29.731295 106.40674,47.570072 106.7197,163.67861 Z"
+       id="path1" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.499999;stroke-linejoin:round"
+       d="M 106.40674,47.570072 144.27503,28.166491 180.5785,45.379346 106.7197,163.67861"
+       id="path2" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.499999;stroke-linejoin:round"
+       d="m 40.059009,49.760801 c 0,0 -35.3646012,-18.464702 34.42571,-20.029506 69.790311,-1.564804 31.981071,39.74589 31.981071,39.74589"
+       id="path3" />
+    <ellipse
+       style="fill:none;stroke:#000000;stroke-width:0.499999;stroke-linejoin:round"
+       id="path4"
+       cx="270.55478"
+       cy="179.95258"
+       rx="14.552687"
+       ry="15.335089" />
+    <ellipse
+       style="fill:none;stroke:#000000;stroke-width:0.499999;stroke-linejoin:round"
+       id="path5"
+       cx="273.84088"
+       cy="19.247103"
+       rx="8.762908"
+       ry="7.9805059" />
+    <ellipse
+       style="fill:none;stroke:#000000;stroke-width:0.499999;stroke-linejoin:round"
+       id="path6"
+       cx="22.689674"
+       cy="189.49789"
+       rx="7.6675444"
+       ry="7.3545837" />
+    <ellipse
+       style="fill:none;stroke:#000000;stroke-width:0.499999;stroke-linejoin:round"
+       id="path7"
+       cx="18.77766"
+       cy="19.090622"
+       rx="6.2592201"
+       ry="5.946259" />
+    <path
+       id="rect7"
+       style="fill:none;stroke:#000000;stroke-width:0.499999;stroke-linejoin:round"
+       d="m 165.55637,105.1549 h 54.14225 v 51.3256 h -54.14225 z" />
+  </g>
+</svg>

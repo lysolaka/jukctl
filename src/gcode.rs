@@ -64,65 +64,84 @@ fn to_command(
     code: Code,
     params: Vec<(char, f32)>,
     syscfg: &SystemConfig,
+    pos: &mut (f32, f32),
 ) -> crate::Result<Command> {
     match code {
         Code::MoveRapid => {
-            let mut x = Displacement::Relative(0);
-            let mut y = Displacement::Relative(0);
+            let mut x = 0.0;
+            let mut y = 0.0;
 
             for (k, v) in params {
                 match k {
-                    'X' => x = Displacement::from_mm(v, Axis::X, syscfg)?,
-                    'Y' => y = Displacement::from_mm(v, Axis::Y, syscfg)?,
+                    'X' => x = v,
+                    'Y' => y = v,
                     _ => (),
                 }
             }
 
+            let dx = Displacement::from_mm(x - pos.0, Axis::X, syscfg)?;
+            let dy = Displacement::from_mm(y - pos.1, Axis::Y, syscfg)?;
+
+            pos.0 = x;
+            pos.1 = y;
+
             Ok(Command::Move {
-                x,
-                y,
+                x: dx,
+                y: dy,
                 z: Displacement::Relative(0),
                 a: RAPID_ACCEL,
                 v: RAPID_VEL,
             })
         }
         Code::Move => {
-            let mut x = Displacement::Relative(0);
-            let mut y = Displacement::Relative(0);
+            let mut x = 0.0;
+            let mut y = 0.0;
 
             for (k, v) in params {
                 match k {
-                    'X' => x = Displacement::from_mm(v, Axis::X, syscfg)?,
-                    'Y' => y = Displacement::from_mm(v, Axis::Y, syscfg)?,
+                    'X' => x = v,
+                    'Y' => y = v,
                     _ => (),
                 }
             }
 
+            let dx = Displacement::from_mm(x - pos.0, Axis::X, syscfg)?;
+            let dy = Displacement::from_mm(y - pos.1, Axis::Y, syscfg)?;
+
+            pos.0 = x;
+            pos.1 = y;
+
             Ok(Command::Move {
-                x,
-                y,
+                x: dx,
+                y: dy,
                 z: Displacement::Relative(0),
                 a: syscfg.accel,
                 v: syscfg.vel,
             })
         }
         Code::ArcPos => {
-            let mut x = Displacement::Relative(0);
-            let mut y = Displacement::Relative(0);
+            let mut x = 0.0;
+            let mut y = 0.0;
             let mut r = 0;
 
             for (k, v) in params {
                 match k {
-                    'X' => x = Displacement::from_mm(v, Axis::X, syscfg)?,
-                    'Y' => y = Displacement::from_mm(v, Axis::Y, syscfg)?,
+                    'X' => x = v,
+                    'Y' => y = v,
                     'R' => r = ((2.0 * v) / (syscfg.mmps.0 + syscfg.mmps.1)).round() as u32,
                     _ => (),
                 }
             }
 
+            let dx = Displacement::from_mm(x - pos.0, Axis::X, syscfg)?;
+            let dy = Displacement::from_mm(y - pos.1, Axis::Y, syscfg)?;
+
+            pos.0 = x;
+            pos.1 = y;
+
             Ok(Command::Arc {
-                x,
-                y,
+                x: dx,
+                y: dy,
                 z: Displacement::Relative(0),
                 r,
                 dir: ArcDir::Pos,
@@ -131,22 +150,28 @@ fn to_command(
             })
         }
         Code::ArcNeg => {
-            let mut x = Displacement::Relative(0);
-            let mut y = Displacement::Relative(0);
+            let mut x = 0.0;
+            let mut y = 0.0;
             let mut r = 0;
 
             for (k, v) in params {
                 match k {
-                    'X' => x = Displacement::from_mm(v, Axis::X, syscfg)?,
-                    'Y' => y = Displacement::from_mm(v, Axis::Y, syscfg)?,
+                    'X' => x = v,
+                    'Y' => y = v,
                     'R' => r = ((2.0 * v) / (syscfg.mmps.0 + syscfg.mmps.1)).round() as u32,
                     _ => (),
                 }
             }
 
+            let dx = Displacement::from_mm(x - pos.0, Axis::X, syscfg)?;
+            let dy = Displacement::from_mm(y - pos.1, Axis::Y, syscfg)?;
+
+            pos.0 = x;
+            pos.1 = y;
+
             Ok(Command::Arc {
-                x,
-                y,
+                x: dx,
+                y: dy,
                 z: Displacement::Relative(0),
                 r,
                 dir: ArcDir::Neg,
@@ -160,13 +185,17 @@ fn to_command(
 /// Parse G-code into a sequence of movement [`Command`]s.
 pub fn to_sequence(gcode_doc: &str, syscfg: &SystemConfig) -> crate::Result<Vec<Command>> {
     log::debug!("Parsing G-code");
-    if syscfg.frame != Frame::Absolute {
-        return Err(Error::FrameNotAbs);
-    }
+    // make our copy of syscfg to ensure the relative frame
+    let syscfg = SystemConfig {
+        frame: Frame::Relative,
+        ..*syscfg
+    };
 
     let s = gcode_doc.lines().count();
     log::debug!("Reserving space for {} commands", s);
     let mut sequence = Vec::with_capacity(s);
+
+    let mut pos = (0.0, 0.0);
 
     for line in gcode_doc.lines().filter(|l| line_filter(*l)) {
         let (code, params) = match parser::parse(line) {
@@ -189,7 +218,7 @@ pub fn to_sequence(gcode_doc: &str, syscfg: &SystemConfig) -> crate::Result<Vec<
             });
         }
 
-        let cmd = to_command(code, params, syscfg)?;
+        let cmd = to_command(code, params, &syscfg, &mut pos)?;
         sequence.push(cmd);
 
         // lower

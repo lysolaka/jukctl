@@ -12,7 +12,6 @@ use indicatif::ProgressStyle;
 
 use juk_cmd::cmd::Command;
 use juk_cmd::cmd::Response;
-use juk_cmd::config::Frame;
 
 use cli::Args;
 use gcode::to_sequence;
@@ -29,8 +28,6 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// Common error type for all the kinds of errors in this program
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("The plotter is not in absolute coordinates mode")]
-    FrameNotAbs,
     #[error("Unexpected `svg2gcode` output")]
     UnexpectedGcode,
     #[error("Unexpected response: `{0:?}`")]
@@ -74,13 +71,13 @@ pub fn run(args: Args) -> crate::Result<()> {
     let svg = bail!(Svg::open(&args.file), "Can't open the SVG file");
     let gcode = bail!(svg.emit_gcode(), "Failed to parse or emit the G-code");
 
-    log::info!("Opening the serial port, make sure the plotter is in binary mode");
+    log::info!("Opening the serial port");
     let mut interface = bail!(
         Interface::open(&args.port),
         "Failed to connect to the plotter"
     );
 
-    log::info!("Getting the system configuration");
+    log::info!("Getting the system configuration, make sure the plotter is in binary mode");
     let syscfg = match bail!(
         interface.transaction(&Command::ConfigGet {
             key: "".to_string(),
@@ -95,10 +92,6 @@ pub fn run(args: Args) -> crate::Result<()> {
     log::info!("System configuration:");
     log::info!("`accel` = {}", syscfg.accel);
     log::info!("`vel` = {}", syscfg.vel);
-    match syscfg.frame {
-        Frame::Absolute => log::info!("`frame` = abs"),
-        Frame::Relative => log::info!("`frame` = rel"),
-    }
     log::info!("`mmpsX` = {}", syscfg.mmps.0);
     log::info!("`mmpsY` = {}", syscfg.mmps.1);
     log::info!("`mmpsZ` = {}", syscfg.mmps.2);
@@ -139,12 +132,12 @@ pub fn run(args: Args) -> crate::Result<()> {
         match interface.transaction(cmd)? {
             Response::Ok => pb.inc(1),
             Response::Err(e) => {
-                pb.finish();
+                pb.abandon();
                 log::error!("Execution failed: got a Response::Err");
                 return Err(e.into());
             }
             r => {
-                pb.finish();
+                pb.abandon();
                 return Err(Error::UnexpectedResponse(r));
             }
         }
