@@ -7,12 +7,16 @@ mod gcode;
 mod svg;
 mod transport;
 
+use indicatif::ProgressBar;
+use indicatif::ProgressStyle;
+
 use juk_cmd::cmd::Command;
 use juk_cmd::cmd::Response;
 use juk_cmd::config::Frame;
 
 use cli::Args;
 use gcode::to_sequence;
+use logger::Logger;
 use svg::Svg;
 use transport::Interface;
 
@@ -36,6 +40,8 @@ pub enum Error {
     FmtError(#[from] std::fmt::Error),
     #[error("I/O error")]
     IoError(#[from] std::io::Error),
+    #[error("Motion error")]
+    MotionError(#[from] juk_cmd::MotionError),
     #[error("G-code parsing error")]
     ParseError(#[from] juk_cmd::ParseError),
     #[error("Data serialization / deserialization error")]
@@ -101,7 +107,49 @@ pub fn run(args: Args) -> crate::Result<()> {
     log::info!("Converting G-code to movement sequence");
     let seq = bail!(to_sequence(&gcode, &syscfg), "Failed to parse G-code");
 
-    log::info!("Sequence length: {}", seq.len());
+    if args.homing {
+        log::info!("Homing is enabled, starting the homing procedure");
+        let response = interface.transaction(&Command::Home {
+            x: true,
+            y: true,
+            z: true,
+        })?;
 
-    Err(Error::Infallible)
+        match response {
+            Response::Ok => log::debug!("Homing complete"),
+            Response::Err(e) => {
+                log::error!("Homing failed: got a Response::Err");
+                return Err(e.into());
+            }
+            r => return Err(Error::UnexpectedResponse(r)),
+        }
+    }
+
+    let pb = ProgressBar::new(seq.len() as u64);
+    pb.set_style(
+        ProgressStyle::with_template("[{elapsed_precise}] [{bar:55}] ({pos}/{len})")
+            .expect("the progress template should always work")
+            .progress_chars("=> "),
+    );
+
+    let pb = Logger::get().install(pb);
+
+    for cmd in seq.iter() {
+        log::trace!("Executing: {:?}", cmd);
+        match interface.transaction(cmd)? {
+            Response::Ok => pb.inc(1),
+            Response::Err(e) => {
+                pb.finish();
+                log::error!("Execution failed: got a Response::Err");
+                return Err(e.into());
+            }
+            r => {
+                pb.finish();
+                return Err(Error::UnexpectedResponse(r));
+            }
+        }
+    }
+    pb.finish();
+
+    Ok(())
 }
