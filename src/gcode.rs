@@ -197,12 +197,20 @@ pub fn to_sequence(gcode_doc: &str, syscfg: &SystemConfig) -> crate::Result<Vec<
             sequence.push(Command::Move {
                 x: Displacement::Relative(0),
                 y: Displacement::Relative(0),
-                z: Displacement::Relative(3000),
+                z: Displacement::Relative(-3000),
                 a: syscfg.accel,
                 v: syscfg.vel,
             });
         }
     }
+
+    sequence.push(Command::Move {
+        x: Displacement::Relative(0),
+        y: Displacement::Relative(0),
+        z: Displacement::Relative(5000),
+        a: syscfg.accel,
+        v: syscfg.vel,
+    });
 
     Ok(sequence)
 }
